@@ -99,6 +99,25 @@ def buscarProducto(texto):
     return temp2
 
 
+def _calcular_subtotal(precio, cantidad):
+    """Regresa el subtotal de la compra: precio por cantidad, sin descuentos."""
+    return precio * cantidad
+
+
+def _descuento_por_volumen(subtotal):
+    """Regresa el descuento por volumen: 10% desde 1000, 5% desde 500, si no 0."""
+    if subtotal >= MONTO_DESCUENTO_ALTO:
+        return subtotal * TASA_DESCUENTO_ALTO
+    if subtotal >= MONTO_DESCUENTO_MEDIO:
+        return subtotal * TASA_DESCUENTO_MEDIO
+    return 0
+
+
+def _calcular_iva(base):
+    """Regresa el IVA de la base (subtotal ya con descuentos), sin redondear."""
+    return base * TASA_IVA
+
+
 def registrar_venta(codigo, cantidad, cliente=""):
     """Registra una venta completa.
 
@@ -126,17 +145,8 @@ def registrar_venta(codigo, cantidad, cliente=""):
     else:
         ultimo_error = "codigo vacio"
         return None
-    # calculo del subtotal
-    aux = temp2["precio"] * cantidad
-    # descuentos por volumen de compra
-    desc = 0
-    if aux >= MONTO_DESCUENTO_ALTO:
-        desc = aux * TASA_DESCUENTO_ALTO
-    else:
-        if aux >= MONTO_DESCUENTO_MEDIO:
-            desc = aux * TASA_DESCUENTO_MEDIO
-        else:
-            desc = 0
+    aux = _calcular_subtotal(temp2["precio"], cantidad)
+    desc = _descuento_por_volumen(aux)
     # los clientes cuyo codigo empieza con VIP tienen un extra,
     # pero solo si su compra (ya con descuento) pasa de cierto monto
     if cliente != "" and cliente is not None:
@@ -145,7 +155,7 @@ def registrar_venta(codigo, cantidad, cliente=""):
                 if aux - desc > MONTO_MINIMO_VIP:
                     desc = desc + aux * TASA_EXTRA_VIP
     base = aux - desc
-    impuesto = base * TASA_IVA
+    impuesto = _calcular_iva(base)
     total = round(base + impuesto, 2)
     # descontar del inventario
     temp2["stock"] = temp2["stock"] - cantidad
@@ -186,13 +196,8 @@ def cotizar(codigo, cantidad):
     if cantidad is None or cantidad <= 0:
         ultimo_error = "cantidad invalida"
         return None
-    aux = INVENTARIO[codigo]["precio"] * cantidad
-    desc = 0
-    if aux >= MONTO_DESCUENTO_ALTO:
-        desc = aux * TASA_DESCUENTO_ALTO
-    else:
-        if aux >= MONTO_DESCUENTO_MEDIO:
-            desc = aux * TASA_DESCUENTO_MEDIO
+    aux = _calcular_subtotal(INVENTARIO[codigo]["precio"], cantidad)
+    desc = _descuento_por_volumen(aux)
     base = aux - desc
-    total = base + base * TASA_IVA
+    total = base + _calcular_iva(base)
     return round(total, 2)
