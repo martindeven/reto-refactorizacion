@@ -1,0 +1,27 @@
+# Archivos que Claude Code no necesita leer en este proyecto.
+# tests/ y docs/ NO se excluyen: los tests definen el comportamiento a
+# conservar y docs/ guarda la evidencia y la bitácora del reto.
+
+# Entorno virtual: miles de archivos de librerías de terceros (pytest, ruff),
+# no es código del proyecto y solo gastaría contexto.
+.venv/
+
+# Bytecode y cachés de Python, pytest y ruff: se regeneran solos y no
+# aportan nada que no esté en el código fuente.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Base de datos interna de git: el historial se consulta con comandos git
+# (git log, git diff), no leyendo estos archivos.
+.git/
+
+# Basura de sistemas operativos (metadatos de descarga de Windows y de macOS).
+*:Zone.Identifier
+.DS_Store
+
+# Datos que genera la app al guardar desde el menú (cd src && python main.py).
+# Cambian en cada ejecución y no son código fuente; el archivo de ejemplo
+# real es datos_ejemplo.json en la raíz.
+src/datos_ejemplo.json

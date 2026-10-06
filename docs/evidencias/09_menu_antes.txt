@@ -1,0 +1,105 @@
+Bienvenido al gestor de la tienda La Esquina
+
+1) Agregar producto
+2) Registrar venta
+3) Cotizar
+4) Reporte de inventario
+5) Resumen de ventas
+6) Mas vendidos
+7) Alertas de stock bajo
+8) Guardar y salir
+Opcion: Codigo: Nombre: Precio: Stock inicial: Producto agregado.
+
+1) Agregar producto
+2) Registrar venta
+3) Cotizar
+4) Reporte de inventario
+5) Resumen de ventas
+6) Mas vendidos
+7) Alertas de stock bajo
+8) Guardar y salir
+Opcion: Codigo del producto: Cantidad: Codigo de cliente (enter si no tiene): TIENDA LA ESQUINA
+----------------------------
+Folio: 1
+Prueba x2
+Subtotal: $20.0
+IVA: $3.2
+TOTAL: $23.2
+
+
+1) Agregar producto
+2) Registrar venta
+3) Cotizar
+4) Reporte de inventario
+5) Resumen de ventas
+6) Mas vendidos
+7) Alertas de stock bajo
+8) Guardar y salir
+Opcion: Codigo del producto: Cantidad: Total estimado (con IVA): $69.6
+
+1) Agregar producto
+2) Registrar venta
+3) Cotizar
+4) Reporte de inventario
+5) Resumen de ventas
+6) Mas vendidos
+7) Alertas de stock bajo
+8) Guardar y salir
+Opcion: ===== INVENTARIO =====
+X1 | Prueba | $10.0 | stock: 1  <-- STOCK BAJO
+Valor total del inventario: $10.0
+
+
+1) Agregar producto
+2) Registrar venta
+3) Cotizar
+4) Reporte de inventario
+5) Resumen de ventas
+6) Mas vendidos
+7) Alertas de stock bajo
+8) Guardar y salir
+Opcion: ===== RESUMEN DE VENTAS =====
+Folio 1: Prueba x2 = $23.2
+Numero de ventas: 1
+Total del dia: $23.2
+
+
+1) Agregar producto
+2) Registrar venta
+3) Cotizar
+4) Reporte de inventario
+5) Resumen de ventas
+6) Mas vendidos
+7) Alertas de stock bajo
+8) Guardar y salir
+Opcion: X1 -> 2 unidades
+
+1) Agregar producto
+2) Registrar venta
+3) Cotizar
+4) Reporte de inventario
+5) Resumen de ventas
+6) Mas vendidos
+7) Alertas de stock bajo
+8) Guardar y salir
+Opcion: OJO: Prueba solo tiene 1 unidades
+
+1) Agregar producto
+2) Registrar venta
+3) Cotizar
+4) Reporte de inventario
+5) Resumen de ventas
+6) Mas vendidos
+7) Alertas de stock bajo
+8) Guardar y salir
+Opcion: Opcion no valida.
+
+1) Agregar producto
+2) Registrar venta
+3) Cotizar
+4) Reporte de inventario
+5) Resumen de ventas
+6) Mas vendidos
+7) Alertas de stock bajo
+8) Guardar y salir
+Opcion: Datos guardados. Hasta luego.

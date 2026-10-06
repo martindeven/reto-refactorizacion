@@ -1,0 +1,86 @@
+# Evidencia #5: dividir registrar_venta
+# Fecha: 2026-10-06 11:05:06
+# Base: b17a7ca (refactorizacion) + cambios sin commit
+
+$ git diff --stat
+ src/gestor.py | 76 ++++++++++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 47 insertions(+), 29 deletions(-)
+
+$ pytest -v
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/martin/proyectos/ia-curso/modulo1/reto/reto-refactorizacion/.venv/bin/python3
+rootdir: /home/martin/proyectos/ia-curso/modulo1/reto/reto-refactorizacion
+configfile: pyproject.toml
+testpaths: tests
+collecting ... collected 41 items
+
+tests/test_almacen.py::test_guardar_y_cargar_conserva_los_datos PASSED   [  2%]
+tests/test_almacen.py::test_el_folio_continua_despues_de_recargar PASSED [  4%]
+tests/test_almacen.py::test_cargar_archivo_inexistente_regresa_false PASSED [  7%]
+tests/test_casos_borde.py::test_ticket_sin_descuento PASSED              [  9%]
+tests/test_casos_borde.py::test_ticket_con_descuento PASSED              [ 12%]
+tests/test_casos_borde.py::test_sin_descuento_el_descuento_es_cero_entero PASSED [ 14%]
+tests/test_casos_borde.py::test_errores_de_agregar_producto PASSED       [ 17%]
+tests/test_casos_borde.py::test_errores_de_eliminar_y_actualizar_stock PASSED [ 19%]
+tests/test_casos_borde.py::test_errores_de_registrar_venta_en_orden PASSED [ 21%]
+tests/test_casos_borde.py::test_errores_de_cotizar PASSED                [ 24%]
+tests/test_casos_borde.py::test_errores_de_cargar_datos PASSED           [ 26%]
+tests/test_casos_borde.py::test_reiniciar_sistema_limpia_el_error PASSED [ 29%]
+tests/test_casos_borde.py::test_vip_justo_en_200_no_aplica PASSED        [ 31%]
+tests/test_casos_borde.py::test_vip_arriba_de_200_si_aplica PASSED       [ 34%]
+tests/test_casos_borde.py::test_vip_se_suma_al_descuento_por_volumen_y_es_sobre_el_subtotal PASSED [ 36%]
+tests/test_casos_borde.py::test_vip_en_minusculas_no_aplica PASSED       [ 39%]
+tests/test_casos_borde.py::test_cotizar_no_aplica_vip PASSED             [ 41%]
+tests/test_casos_borde.py::test_reporte_inventario_texto_completo PASSED [ 43%]
+tests/test_casos_borde.py::test_resumen_ventas_texto_completo PASSED     [ 46%]
+tests/test_casos_borde.py::test_reportes_sin_datos_muestran_cero_sin_decimales PASSED [ 48%]
+tests/test_casos_borde.py::test_reportes_tambien_imprimen_el_texto PASSED [ 51%]
+tests/test_casos_borde.py::test_mas_vendidos_empate_conserva_el_orden_de_primera_venta PASSED [ 53%]
+tests/test_casos_borde.py::test_mas_vendidos_sin_ventas_es_lista_vacia PASSED [ 56%]
+tests/test_casos_borde.py::test_stock_en_5_no_es_bajo_y_en_4_si PASSED   [ 58%]
+tests/test_gestor.py::test_agregar_producto_queda_en_inventario PASSED   [ 60%]
+tests/test_gestor.py::test_rechaza_altas_invalidas PASSED                [ 63%]
+tests/test_gestor.py::test_actualizar_stock_suma_y_resta PASSED          [ 65%]
+tests/test_gestor.py::test_eliminar_producto PASSED                      [ 68%]
+tests/test_gestor.py::test_buscar_producto_por_nombre PASSED             [ 70%]
+tests/test_gestor.py::test_venta_descuenta_stock_y_asigna_folio PASSED   [ 73%]
+tests/test_gestor.py::test_venta_sin_descuento_aplica_iva PASSED         [ 75%]
+tests/test_gestor.py::test_venta_con_descuento_por_volumen_medio PASSED  [ 78%]
+tests/test_gestor.py::test_venta_con_descuento_por_volumen_alto PASSED   [ 80%]
+tests/test_gestor.py::test_venta_cliente_vip_recibe_descuento_extra PASSED [ 82%]
+tests/test_gestor.py::test_venta_rechaza_stock_insuficiente PASSED       [ 85%]
+tests/test_gestor.py::test_venta_rechaza_producto_inexistente_y_cantidad_invalida PASSED [ 87%]
+tests/test_gestor.py::test_cotizar_coincide_con_el_total_de_la_venta PASSED [ 90%]
+tests/test_reportes.py::test_stock_bajo_detecta_los_correctos PASSED     [ 92%]
+tests/test_reportes.py::test_total_vendido_suma_las_ventas PASSED        [ 95%]
+tests/test_reportes.py::test_mas_vendidos_ordena_por_unidades PASSED     [ 97%]
+tests/test_reportes.py::test_reporte_inventario_marca_stock_bajo PASSED  [100%]
+
+============================== 41 passed in 0.04s ==============================
+[exit code: 0]
+
+$ ruff check src --statistics
+2	SIM115	[ ] open-file-with-context-handler
+1	C901  	[ ] complex-structure
+1	N802  	[ ] invalid-function-name
+1	N816  	[ ] mixed-case-variable-in-global-scope
+1	UP015 	[*] redundant-open-modes
+1	I001  	[*] unsorted-imports
+Found 7 errors.
+[*] 2 fixable with the `--fix` option.
+[exit code: 1]
+
+$ ruff check src --output-format concise | grep C901   (registrar_venta ya no aparece)
+src/main.py:20:5: C901 `menu` is too complex (17 > 10)
+
+$ complejidad de registrar_venta y sus funciones nuevas (max-complexity=0 solo para medir)
+src/gestor.py:121:5: C901 `_siguiente_folio` is too complex (1 > 0)
+src/gestor.py:128:5: C901 `_construir_registro_venta` is too complex (1 > 0)
+src/gestor.py:145:5: C901 `_generar_ticket` is too complex (2 > 0)
+src/gestor.py:160:5: C901 `registrar_venta` is too complex (6 > 0)
+(antes: registrar_venta = 7; en el código original = 12)
+
+$ comparación versión anterior (HEAD) vs nueva
+3537 ventas registradas en 400 secuencias de 25 operaciones (incluye errores): registro con claves en el mismo orden, valores, tipos, 3537 tickets, inventario, VENTAS y contadorVentas idénticos
+folio tras recargar: 42 42
+[exit code: 0]
