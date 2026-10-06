@@ -118,15 +118,53 @@ def _calcular_iva(base):
     return base * TASA_IVA
 
 
+def _siguiente_folio():
+    """Incrementa el contador de ventas y regresa el nuevo folio."""
+    global contadorVentas
+    contadorVentas = contadorVentas + 1
+    return contadorVentas
+
+
+def _construir_registro_venta(folio, codigo, producto, cantidad, cliente,
+                              subtotal, descuento, impuesto, total):
+    """Arma el dict de la venta (sin ticket); redondea subtotal, descuento e IVA."""
+    venta = {}
+    venta["folio"] = folio
+    venta["codigo"] = codigo
+    venta["nombre"] = producto["nombre"]
+    venta["cantidad"] = cantidad
+    venta["subtotal"] = round(subtotal, 2)
+    venta["descuento"] = round(descuento, 2)
+    venta["impuesto"] = round(impuesto, 2)
+    venta["total"] = total
+    venta["cliente"] = cliente
+    venta["fecha"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return venta
+
+
+def _generar_ticket(venta):
+    """Regresa el ticket de la venta en texto plano."""
+    t = ""
+    t = t + "TIENDA LA ESQUINA\n"
+    t = t + "----------------------------\n"
+    t = t + "Folio: " + str(venta["folio"]) + "\n"
+    t = t + venta["nombre"] + " x" + str(venta["cantidad"]) + "\n"
+    t = t + "Subtotal: $" + str(venta["subtotal"]) + "\n"
+    if venta["descuento"] > 0:
+        t = t + "Descuento: -$" + str(venta["descuento"]) + "\n"
+    t = t + "IVA: $" + str(venta["impuesto"]) + "\n"
+    t = t + "TOTAL: $" + str(venta["total"]) + "\n"
+    return t
+
+
 def registrar_venta(codigo, cantidad, cliente=""):
     """Registra una venta completa.
 
-    Esta funcion hace de todo: valida los datos, calcula descuentos e
-    impuestos, descuenta el stock, genera el folio, arma el ticket en
-    texto y guarda el registro en la lista de ventas. Si algo falla
-    regresa None y deja el motivo en ultimo_error.
+    Valida los datos, calcula descuentos e impuestos, descuenta el stock,
+    asigna el folio, arma el registro y el ticket y lo guarda en VENTAS.
+    Si algo falla regresa None y deja el motivo en ultimo_error.
     """
-    global contadorVentas, ultimo_error
+    global ultimo_error
     if codigo is None or codigo == "":
         ultimo_error = "codigo vacio"
         return None
@@ -153,30 +191,10 @@ def registrar_venta(codigo, cantidad, cliente=""):
     total = round(base + impuesto, 2)
     # descontar del inventario
     temp2["stock"] = temp2["stock"] - cantidad
-    contadorVentas = contadorVentas + 1
-    venta = {}
-    venta["folio"] = contadorVentas
-    venta["codigo"] = codigo
-    venta["nombre"] = temp2["nombre"]
-    venta["cantidad"] = cantidad
-    venta["subtotal"] = round(aux, 2)
-    venta["descuento"] = round(desc, 2)
-    venta["impuesto"] = round(impuesto, 2)
-    venta["total"] = total
-    venta["cliente"] = cliente
-    venta["fecha"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    # armar el ticket en texto plano
-    t = ""
-    t = t + "TIENDA LA ESQUINA\n"
-    t = t + "----------------------------\n"
-    t = t + "Folio: " + str(venta["folio"]) + "\n"
-    t = t + venta["nombre"] + " x" + str(cantidad) + "\n"
-    t = t + "Subtotal: $" + str(venta["subtotal"]) + "\n"
-    if desc > 0:
-        t = t + "Descuento: -$" + str(venta["descuento"]) + "\n"
-    t = t + "IVA: $" + str(venta["impuesto"]) + "\n"
-    t = t + "TOTAL: $" + str(venta["total"]) + "\n"
-    venta["ticket"] = t
+    folio = _siguiente_folio()
+    venta = _construir_registro_venta(folio, codigo, temp2, cantidad, cliente,
+                                      aux, desc, impuesto, total)
+    venta["ticket"] = _generar_ticket(venta)
     VENTAS.append(venta)
     return venta
 
