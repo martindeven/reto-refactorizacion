@@ -10,16 +10,16 @@ ARCHIVO = "datos_ejemplo.json"
 def pedir_numero(mensaje):
     # pide un numero al usuario hasta que escriba algo valido
     while True:
-        temp2 = input(mensaje)
+        respuesta = input(mensaje)
         try:
-            return float(temp2)
+            return float(respuesta)
         except ValueError:
             print("Eso no es un numero, intenta de nuevo.")
 
 
 def menu():
     print("Bienvenido al gestor de la tienda La Esquina")
-    if almacen.hayArchivo(ARCHIVO):
+    if almacen.existe_archivo(ARCHIVO):
         almacen.cargar_datos(ARCHIVO)
         print("Datos cargados de", ARCHIVO)
     while True:
@@ -32,48 +32,49 @@ def menu():
         print("6) Mas vendidos")
         print("7) Alertas de stock bajo")
         print("8) Guardar y salir")
-        op = input("Opcion: ")
-        if op == "1":
-            c = input("Codigo: ")
-            n = input("Nombre: ")
-            p = pedir_numero("Precio: ")
-            s = int(pedir_numero("Stock inicial: "))
-            if gestor.agregarProducto(c, n, p, s):
+        opcion = input("Opcion: ")
+        if opcion == "1":
+            codigo = input("Codigo: ")
+            nombre = input("Nombre: ")
+            precio = pedir_numero("Precio: ")
+            stock = int(pedir_numero("Stock inicial: "))
+            if gestor.agregarProducto(codigo, nombre, precio, stock):
                 print("Producto agregado.")
             else:
                 print("Error:", gestor.ultimo_error)
-        elif op == "2":
-            c = input("Codigo del producto: ")
-            cant = int(pedir_numero("Cantidad: "))
-            cli = input("Codigo de cliente (enter si no tiene): ")
-            v = gestor.registrar_venta(c, cant, cli)
-            if v is not None:
-                print(v["ticket"])
+        elif opcion == "2":
+            codigo = input("Codigo del producto: ")
+            cantidad = int(pedir_numero("Cantidad: "))
+            cliente = input("Codigo de cliente (enter si no tiene): ")
+            venta = gestor.registrar_venta(codigo, cantidad, cliente)
+            if venta is not None:
+                print(venta["ticket"])
             else:
                 print("Error:", gestor.ultimo_error)
-        elif op == "3":
-            c = input("Codigo del producto: ")
-            cant = int(pedir_numero("Cantidad: "))
-            t = gestor.cotizar(c, cant)
-            if t is not None:
-                print("Total estimado (con IVA): $" + str(t))
+        elif opcion == "3":
+            codigo = input("Codigo del producto: ")
+            cantidad = int(pedir_numero("Cantidad: "))
+            total = gestor.cotizar(codigo, cantidad)
+            if total is not None:
+                print("Total estimado (con IVA): $" + str(total))
             else:
                 print("Error:", gestor.ultimo_error)
-        elif op == "4":
+        elif opcion == "4":
             reportes.reporte_inventario()
-        elif op == "5":
+        elif opcion == "5":
             reportes.resumen_ventas()
-        elif op == "6":
-            for par in reportes.mas_vendidos():
-                print(par[0], "->", par[1], "unidades")
-        elif op == "7":
-            bajos = reportes.productos_stock_bajo()
-            if len(bajos) == 0:
+        elif opcion == "6":
+            for codigo, unidades in reportes.mas_vendidos():
+                print(codigo, "->", unidades, "unidades")
+        elif opcion == "7":
+            productos_bajos = reportes.productos_stock_bajo()
+            if len(productos_bajos) == 0:
                 print("No hay productos con stock bajo.")
             else:
-                for p in bajos:
-                    print("OJO:", p["nombre"], "solo tiene", p["stock"], "unidades")
-        elif op == "8":
+                for producto in productos_bajos:
+                    print("OJO:", producto["nombre"], "solo tiene",
+                          producto["stock"], "unidades")
+        elif opcion == "8":
             almacen.guardar_datos(ARCHIVO)
             print("Datos guardados. Hasta luego.")
             break
