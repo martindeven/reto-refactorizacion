@@ -10,28 +10,24 @@ def formatear_moneda(valor):
 
 def productos_stock_bajo():
     """Regresa la lista de productos con stock por debajo del minimo."""
-    bajos = []
-    for codigo in gestor.INVENTARIO:
-        if gestor.INVENTARIO[codigo]["stock"] < gestor.STOCK_MINIMO:
-            bajos.append(gestor.INVENTARIO[codigo])
-    return bajos
+    return [producto for producto in gestor.INVENTARIO.values()
+            if producto["stock"] < gestor.STOCK_MINIMO]
 
 
 def reporte_inventario():
     """Arma el reporte del inventario, lo imprime y lo regresa como texto."""
-    texto = "===== INVENTARIO =====\n"
-    valor_total = 0
-    for codigo in gestor.INVENTARIO:
-        producto = gestor.INVENTARIO[codigo]
-        linea = producto["codigo"] + " | " + producto["nombre"] + " | "
-        linea = (linea + formatear_moneda(producto["precio"])
-                 + " | stock: " + str(producto["stock"]))
+    lineas = ["===== INVENTARIO ====="]
+    valor_total = 0  # entero: sin productos el reporte dice "$0", no "$0.0"
+    for producto in gestor.INVENTARIO.values():
+        linea = (f"{producto['codigo']} | {producto['nombre']} | "
+                 f"{formatear_moneda(producto['precio'])} | "
+                 f"stock: {producto['stock']}")
         if producto["stock"] < gestor.STOCK_MINIMO:
-            linea = linea + "  <-- STOCK BAJO"
-        texto = texto + linea + "\n"
+            linea += "  <-- STOCK BAJO"
+        lineas.append(linea)
         valor_total = valor_total + producto["precio"] * producto["stock"]
-    texto = (texto + "Valor total del inventario: "
-             + formatear_moneda(valor_total) + "\n")
+    lineas.append(f"Valor total del inventario: {formatear_moneda(valor_total)}")
+    texto = "\n".join(lineas) + "\n"
     print(texto)
     return texto
 
@@ -48,34 +44,26 @@ def mas_vendidos(n=3):
     """Regresa los n productos mas vendidos como lista de (codigo, unidades)."""
     unidades_por_codigo = {}
     for venta in gestor.VENTAS:
-        if venta["codigo"] in unidades_por_codigo:
-            unidades_por_codigo[venta["codigo"]] = (
-                unidades_por_codigo[venta["codigo"]] + venta["cantidad"])
-        else:
-            unidades_por_codigo[venta["codigo"]] = venta["cantidad"]
-    ranking = []
-    for codigo in unidades_por_codigo:
-        ranking.append((codigo, unidades_por_codigo[codigo]))
-    # ordenamiento de burbuja (TODO: algun dia usar sorted)
-    for i in range(len(ranking)):
-        for j in range(0, len(ranking) - i - 1):
-            if ranking[j][1] < ranking[j + 1][1]:
-                anterior = ranking[j]
-                ranking[j] = ranking[j + 1]
-                ranking[j + 1] = anterior
-    return ranking[0:n]
+        codigo = venta["codigo"]
+        unidades_por_codigo[codigo] = (unidades_por_codigo.get(codigo, 0)
+                                       + venta["cantidad"])
+    # sorted es estable (tambien con reverse=True): en empates queda primero
+    # el producto que se vendio primero, igual que con el metodo anterior
+    ranking = sorted(unidades_por_codigo.items(),
+                     key=lambda par: par[1], reverse=True)
+    return ranking[:n]
 
 
 def resumen_ventas():
     """Arma el resumen de ventas del dia, lo imprime y lo regresa."""
-    texto = "===== RESUMEN DE VENTAS =====\n"
-    total = 0
+    lineas = ["===== RESUMEN DE VENTAS ====="]
+    total = 0  # entero: sin ventas el resumen dice "$0", no "$0.0"
     for venta in gestor.VENTAS:
-        texto = texto + "Folio " + str(venta["folio"]) + ": " + venta["nombre"]
-        texto = (texto + " x" + str(venta["cantidad"]) + " = "
-                 + formatear_moneda(venta["total"]) + "\n")
+        lineas.append(f"Folio {venta['folio']}: {venta['nombre']} "
+                      f"x{venta['cantidad']} = {formatear_moneda(venta['total'])}")
         total = total + venta["total"]
-    texto = texto + "Numero de ventas: " + str(len(gestor.VENTAS)) + "\n"
-    texto = texto + "Total del dia: " + formatear_moneda(total) + "\n"
+    lineas.append(f"Numero de ventas: {len(gestor.VENTAS)}")
+    lineas.append(f"Total del dia: {formatear_moneda(total)}")
+    texto = "\n".join(lineas) + "\n"
     print(texto)
     return texto
