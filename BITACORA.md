@@ -151,6 +151,34 @@ Después de cada cambio ejecuta `pytest` y `ruff check src` y anota el resultado
 
 **Conclusión:** el prompt vago no está "mal", pero le deja a la IA decidir el alcance, y la IA tiende a arreglar todo a la vez. Eso produce cambios grandes, difíciles de revisar y con riesgos que el prompt no menciona (como un nombre que se usa en otro archivo). El prompt detallado acota **qué** cambiar, **qué no** debe cambiar (resultados, orden, redondeos, `0` entero) y **cómo** validarlo. Así el cambio es pequeño, verificable y cabe en un commit. CLAUDE.md y las pruebas de caracterización ayudan como red de seguridad, pero no sustituyen a un buen prompt: atrapan errores después; el prompt detallado los evita antes.
 
+## Mejoras a CLAUDE.md
+
+**Modo:** normal.
+
+**Prompt usado:**
+
+> Ya llevo 3 refactorizaciones. Revisa la bitácora y el git log y dime qué reglas le faltan a CLAUDE.md para que no se repitan los problemas o dudas que tuvimos (por ejemplo: "antes de borrar algo revisa con grep que no se use", "no cambies el texto del ticket").
+> Agrégalas, añade un ejemplo de un buen prompt para este proyecto y una fila nueva en la tabla "Cambios a este archivo" (versión 2).
+> Anótalo en la bitácora en una sección "Mejoras a CLAUDE.md" con este prompt y haz commit.
+
+> Nota: la versión 2 de CLAUDE.md ya existía (regla de `.claudeignore` / `permissions.deny`), así que esta quedó como **versión 3**.
+
+| Qué pasó (bitácora / git log) | Regla agregada a CLAUDE.md |
+|---|---|
+| Dos prompts pidieron `docs/bitacora.md` y se terminó usando `BITACORA.md` en la raíz | La bitácora es `BITACORA.md` en la raíz, con sus columnas (incluye Modo y Ruff antes → después) |
+| Refactorización 1: se revisó con grep antes de borrar | `grep -rn <nombre> src tests` antes de borrar o renombrar |
+| Experimento: renombrar `contadorVentas` solo en `gestor.py` rompió 2 tests de `almacen` | Si un nombre se usa en otro módulo, renombrarlo en todos en el mismo commit |
+| R1: la línea `# -*- coding` también estaba en `tests/` y se dejó | Los 4 tests originales no se tocan ni para limpiarlos; `test_casos_borde.py` es nuestro y, si falla, probablemente cambió el comportamiento |
+| Riesgo visto en el experimento: f-strings con `:.2f` → `$20.00` | No cambiar el texto del ticket ni de los reportes; f-strings solo con `{valor}` |
+| R2/R3: cuidado de no alterar operaciones ni redondeos | No reescribir fórmulas "equivalentes" (`base * 1.16`); mismas operaciones, mismo orden, `round` donde está, `0` entero |
+| R2/R3: comparación contra la versión anterior en miles de casos | Si se toca un cálculo, comparar contra `HEAD` en casos al azar y en los límites |
+| R1: `main.py` no tiene pruebas; se probó con entrada guionada | Comando de prueba manual del menú, corrido fuera de `src/` para no crear `src/datos_ejemplo.json` |
+| R2: ruff se quedó en 13 | Anotar el resultado real de ruff aunque no baje |
+| R3: VIP, ticket y validación se dejaron fuera a propósito | Hacer solo lo que pide el prompt y listar lo demás como pendiente |
+| Evidencias `NN_nombre.txt` y commits "Refactorización N: …" | Formato de evidencias y de commits, con código, evidencia y bitácora en un solo commit |
+
+También se **actualizó información vieja**: la tabla de `gestor.py` ahora menciona las constantes y las funciones `_calcular_subtotal`, `_descuento_por_volumen` y `_calcular_iva`; el stock bajo usa `STOCK_MINIMO`; se quitó la lista de "código muerto" (ya se borró en R1); y el ejemplo de convenciones usa `_calcular_extra_vip` (privada) y las constantes que ya existen. Se agregó un **ejemplo de buen prompt** (la refactorización del VIP) que dice qué cambiar, qué no, pide plan antes de editar y cómo validar. Sin cambios en `src/`: 41/41 tests, ruff 11.
+
 ## Reflexión final (10-15 líneas)
 
 Responde: ¿Qué tan útil fue Claude Code para detectar y corregir los problemas?

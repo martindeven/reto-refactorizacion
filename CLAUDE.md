@@ -10,7 +10,7 @@ Archivos de `src/` (módulos planos que se importan entre sí con `import gestor
 
 | Archivo | Contenido |
 |---|---|
-| `gestor.py` | Estado global (`INVENTARIO`, `VENTAS`, `contadorVentas`, `ultimo_error`) y la lógica de negocio: alta/baja de productos, stock, búsqueda, `registrar_venta` (valida, calcula descuentos e IVA, descuenta stock, asigna folio y arma el ticket) y `cotizar`. |
+| `gestor.py` | Constantes de reglas de negocio (`MONTO_DESCUENTO_*`, `TASA_*`, `PREFIJO_VIP`, `MONTO_MINIMO_VIP`, `TASA_IVA`, `STOCK_MINIMO`), estado global (`INVENTARIO`, `VENTAS`, `contadorVentas`, `ultimo_error`) y la lógica: alta/baja de productos, stock, búsqueda, `registrar_venta` (valida, calcula descuentos e IVA, descuenta stock, asigna folio y arma el ticket) y `cotizar`. El cálculo compartido vive en `_calcular_subtotal`, `_descuento_por_volumen` y `_calcular_iva`. |
 | `almacen.py` | Guarda y carga el estado de `gestor` en un JSON (`inventario`, `ventas`, `contador`). |
 | `reportes.py` | Stock bajo, reporte de inventario, total vendido, más vendidos y resumen de ventas. |
 | `main.py` | Menú interactivo de consola. Solo entrada/salida; llama a los otros módulos. |
@@ -30,8 +30,13 @@ Si `.venv` no existe: `python3 -m venv .venv && .venv/bin/pip install -r require
 ## Reglas
 
 - **No modificar** los tests existentes (`tests/`) ni `pyproject.toml`. Si un test falla, el error está en el código, no en el test. Tampoco silenciar ruff con `# noqa`.
+- Los 4 archivos originales de `tests/` (`conftest.py`, `test_gestor.py`, `test_almacen.py`, `test_reportes.py`) **no se tocan ni para limpiarlos** (p. ej. la línea `# -*- coding` se quitó solo de `src/`). `tests/test_casos_borde.py` es nuestro: son pruebas de caracterización que fijan el comportamiento actual (texto del ticket y reportes, mensajes de error y su orden, límites VIP, empates). Si una falla después de refactorizar, lo más probable es que cambiaste el comportamiento; no ajustes la prueba sin preguntarme.
 - **No renombrar** `agregarProducto` ni `buscarProducto`: los usan los tests (por eso están en `ignore-names` de ruff).
 - **El programa debe comportarse igual que antes**: mismos valores de regreso, mismos mensajes de error, mismo texto del ticket y de los reportes, mismos resultados de descuentos e IVA.
+- **No cambies el texto del ticket ni de los reportes**: ni encabezados, ni guiones, ni espacios (`"  <-- STOCK BAJO"` lleva dos), ni el formato de los números. Si los pasas a f-strings, usa `{valor}` sin especificador de formato (nada de `:.2f`).
+- **No reescribas las fórmulas aunque parezcan equivalentes**: el total es `round(base + base * TASA_IVA, 2)` (en `registrar_venta`, `base + impuesto`), no `base * 1.16` ni `base * (1 + TASA_IVA)`; el `0` sin descuento es entero. Mantén las mismas operaciones en el mismo orden y los `round` donde están.
+- **Antes de borrar o renombrar algo, búscalo con `grep -rn <nombre> src tests`** y revisa cada uso. Si se usa en otro módulo, renómbralo **en todos los módulos en el mismo commit** (renombrar `contadorVentas` solo en `gestor.py` rompe 2 tests de `almacen`).
+- **Haz solo lo que pide el prompt**, aunque veas otras cosas que mejorar. Menciónalas al final como pendientes para otro commit.
 - También son API usada por los tests: `gestor.INVENTARIO`, `gestor.VENTAS`, `reiniciar_sistema`, `eliminar_producto`, `actualizar_stock`, `registrar_venta`, `cotizar`, `almacen.guardar_datos`/`cargar_datos` y `reportes.productos_stock_bajo`/`reporte_inventario`/`total_vendido`/`mas_vendidos`, además de las llaves de los dicts de producto (`codigo`, `nombre`, `precio`, `stock`) y de venta (`folio`, `codigo`, `nombre`, `cantidad`, `subtotal`, `descuento`, `impuesto`, `total`, `cliente`, `fecha`, `ticket`).
 - **Archivos que no se leen**: `.claudeignore` lista lo que Claude Code no necesita leer (`.venv`, cachés, `.git`, basura de SO, `src/datos_ejemplo.json`). Como Claude Code no aplica ese archivo por sí solo, las mismas exclusiones están en `.claude/settings.json` como reglas `Read(...)` de `permissions.deny`. Si cambias una lista, cambia también la otra.
 
@@ -61,7 +66,7 @@ Los errores se señalan regresando `False` (altas, bajas, stock, carga) o `None`
 - VIP: el código de cliente empieza con `"VIP"`, y el extra solo aplica si `subtotal - descuento > 200` (estrictamente mayor, ya con el descuento por volumen). El extra es 2% **del subtotal**, no de lo ya descontado.
 - IVA 16% sobre `subtotal - descuento`.
 - `cotizar` usa la misma fórmula de volumen + IVA pero **no aplica VIP** y no toca stock, folios ni `VENTAS`.
-- Stock bajo es `stock < 5` (estrictamente menor). Se usa en `productos_stock_bajo` y en la marca `  <-- STOCK BAJO` de `reporte_inventario`; si se vuelve constante, que sea una sola para los dos.
+- Stock bajo es `stock < STOCK_MINIMO` (5, estrictamente menor). Se usa en `productos_stock_bajo` y en la marca `  <-- STOCK BAJO` de `reporte_inventario`, ambas con `gestor.STOCK_MINIMO`. Usa siempre las constantes de `gestor.py`; no vuelvas a escribir los números.
 - Los folios son consecutivos (`contadorVentas + 1`) y continúan después de cargar el JSON.
 - `fecha` usa el formato `"%Y-%m-%d %H:%M:%S"`.
 
@@ -75,7 +80,12 @@ Los errores se señalan regresando `False` (altas, bajas, stock, carga) o `None`
 - `mas_vendidos`: en empates queda primero el que se vendió primero. `sorted(..., key=..., reverse=True)` lo respeta (es estable); `sorted(...)[::-1]` no.
 - `cd src && python main.py` busca `src/datos_ejemplo.json`, no el de la raíz, así que arranca vacío hasta que guardas (opción 8). Es el comportamiento actual: no "arreglarlo" dentro de una refactorización.
 
-**Código muerto** (nadie lo llama; se puede borrar): `gestor.calcular_descuento_viejo`, el bloque comentado `exportar_txt`, `reportes.reporteViejoCSV`, `gestor.MODO_DEBUG`.
+**`main.py` no tiene pruebas.** Si lo cambias, compara la salida antes y después con la misma entrada guionada. Córrelo desde una carpeta temporal (no desde `src/`) para que la opción 8 no cree `src/datos_ejemplo.json`:
+
+```bash
+cd "$(mktemp -d)" && printf '1\nA1\nCafe\n10\n3\n2\nA1\n1\n\n4\n5\n6\n7\n8\n' \
+  | PYTHONPATH=<repo>/src <repo>/.venv/bin/python -m main > salida.txt
+```
 
 ## Convenciones
 
@@ -84,6 +94,7 @@ Los errores se señalan regresando `False` (altas, bajas, stock, carga) o `None`
 - Docstrings en español.
 - Archivos siempre con `with open(...)`.
 - Evitar `if` anidados: cláusulas de guarda con `return` temprano.
+- Funciones auxiliares nuevas: privadas (`_nombre`), pequeñas y con docstring de una línea.
 - Nombres descriptivos (`subtotal`, `descuento`), no `aux`, `temp2`, `x`, `hacer_cosa`.
 - Funciones con complejidad ≤ 10 (regla C901 de ruff).
 
@@ -97,13 +108,8 @@ if cliente != "" and cliente is not None:
             if aux - desc > 200:
                 desc = desc + aux * 0.02
 
-# Después
-PREFIJO_VIP = "VIP"
-MONTO_MINIMO_VIP = 200
-TASA_EXTRA_VIP = 0.02
-
-
-def calcular_extra_vip(cliente: str | None, subtotal: float, descuento: float) -> float:
+# Después (las constantes ya existen al inicio de gestor.py)
+def _calcular_extra_vip(cliente: str | None, subtotal: float, descuento: float) -> float:
     """Regresa el descuento extra VIP, o 0 si el cliente no califica."""
     if not cliente or not cliente.startswith(PREFIJO_VIP):
         return 0
@@ -112,16 +118,27 @@ def calcular_extra_vip(cliente: str | None, subtotal: float, descuento: float) -
     return subtotal * TASA_EXTRA_VIP
 
 # ...y en registrar_venta:
-descuento = descuento + calcular_extra_vip(cliente, subtotal, descuento)
+descuento = descuento + _calcular_extra_vip(cliente, subtotal, descuento)
 ```
 
 ## Cómo trabajar
 
 1. **Un cambio a la vez.** Una refactorización = un commit.
 2. **Antes de editar, explica el plan**: qué vas a cambiar, en qué archivos, por qué mejora el código y qué riesgo hay de cambiar el comportamiento (revisa la sección anterior). Espera mi visto bueno.
-3. Al terminar corre `.venv/bin/pytest -v` y `.venv/bin/ruff check src`. Si falla un test, corrige el código, nunca el test.
-4. Agrega una fila a `BITACORA.md` (copia de `BITACORA_TEMPLATE.md`): prompt usado, cambio realizado, justificación y resultado de los tests.
-5. Haz commit en la rama `refactorizacion` con un mensaje en español que describa la refactorización.
+3. Al terminar corre `.venv/bin/pytest -v` y `.venv/bin/ruff check src --statistics`. Si falla un test, corrige el código, nunca el test; si no puedes, revierte el cambio y explícame por qué.
+4. **Si tocaste un cálculo** (descuentos, IVA, totales, redondeo), además de pytest compara la versión anterior (`git show HEAD:src/gestor.py`) contra la nueva en miles de casos al azar **y** en los límites (subtotal 499.99/500/999.99/1000, VIP en 200/200.01, precios `int` y `float`): venta completa sin `fecha`, tipo de cada campo y `cotizar`. El script va en el scratchpad, no en el repo.
+5. Guarda la salida (diff stat, pytest, ruff y la comparación si la hubo) en `docs/evidencias/NN_nombre.txt`, donde `NN` es el número de la refactorización.
+6. Agrega la fila `NN` a la tabla de **`BITACORA.md` en la raíz** (no `docs/bitacora.md`). Columnas: `#`, Prompt usado (textual), Modo (plan / normal / plan → normal), Cambio realizado, Justificación, Tests OK, Ruff (antes → después). Anota el resultado real de ruff aunque no baje.
+7. Haz commit en la rama `refactorizacion`: `Refactorización N: <qué cambió>`, con un cuerpo que diga el resultado de pytest y ruff. Un commit por refactorización, con el código, la evidencia y la bitácora juntos.
+
+### Ejemplo de un buen prompt para este proyecto
+
+> Refactorización 4: en `gestor.py`, los cuatro `if` anidados del descuento VIP dentro de `registrar_venta`. Sácalos a una función `_calcular_extra_vip(cliente, subtotal, descuento)` con cláusulas de guarda.
+> **No cambies:** que el prefijo distingue mayúsculas (`"vip1"` no aplica), que la condición es `subtotal - descuento > 200` (estricto), que el extra es 2 % del subtotal, que `cotizar` no aplica VIP y que sin descuento queda `0` entero. Tampoco toques la validación ni el ticket.
+> Antes de editar, explícame el plan y espera mi OK.
+> Al terminar: pytest + `ruff --statistics` + comparación con la versión anterior → `docs/evidencias/04_extra_vip.txt`, fila 4 en `BITACORA.md` y commit.
+
+Qué lo hace bueno: dice **qué** cambiar y **dónde**, **qué no** debe cambiar, pide el plan antes de editar y dice **cómo** validarlo y qué entregar.
 
 ## Cambios a este archivo
 
@@ -129,3 +146,4 @@ descuento = descuento + calcular_extra_vip(cliente, subtotal, descuento)
 |---|---|---|
 | 1 | 2026-10-06 | Versión inicial: proyecto, comandos, reglas, puntos frágiles, convenciones y forma de trabajo. |
 | 2 | 2026-10-06 | Regla sobre `.claudeignore` y su equivalente en `.claude/settings.json` (`permissions.deny`). |
+| 3 | 2026-10-06 | Lecciones de las refactorizaciones 1–3: grep antes de borrar o renombrar, renombrar en todos los módulos a la vez, no tocar el texto del ticket ni reescribir fórmulas, solo lo que pide el prompt, `test_casos_borde.py`, prueba manual de `main.py`, comparación con `HEAD` en cálculos, ubicación y columnas de `BITACORA.md`, evidencias y formato de commit; ejemplo de buen prompt. Se actualizó lo desactualizado (constantes y funciones nuevas en `gestor.py`, `STOCK_MINIMO`, se quitó la lista de código muerto ya eliminado). |
