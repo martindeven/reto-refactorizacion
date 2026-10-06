@@ -2,13 +2,14 @@
 
 import json
 import os
+from typing import Any
 
 import gestor
 
 
-def guardar_datos(ruta):
+def guardar_datos(ruta: str) -> bool:
     """Guarda el inventario, las ventas y el folio actual en un JSON."""
-    datos = {}
+    datos: dict[str, Any] = {}
     datos["inventario"] = gestor.INVENTARIO
     datos["ventas"] = gestor.VENTAS
     datos["contador"] = gestor.contador_ventas
@@ -17,7 +18,7 @@ def guardar_datos(ruta):
     return True
 
 
-def cargar_datos(ruta):
+def cargar_datos(ruta: str) -> bool:
     """Lee el archivo JSON y deja los datos en el estado global.
 
     Regresa False si el archivo no existe o esta corrupto.
@@ -40,6 +41,6 @@ def cargar_datos(ruta):
     return True
 
 
-def existe_archivo(ruta):
-    # checa si ya existe el archivo de datos
+def existe_archivo(ruta: str) -> bool:
+    """Regresa True si ya existe el archivo de datos."""
     return os.path.exists(ruta)
