@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./.venv/**)",
+      "Read(**/__pycache__/**)",
+      "Read(**/*.pyc)",
+      "Read(./.pytest_cache/**)",
+      "Read(./.ruff_cache/**)",
+      "Read(./.git/**)",
+      "Read(**/*:Zone.Identifier)",
+      "Read(**/.DS_Store)",
+      "Read(./src/datos_ejemplo.json)"
+    ]
+  }
+}
