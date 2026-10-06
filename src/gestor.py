@@ -127,33 +127,27 @@ def registrar_venta(codigo, cantidad, cliente=""):
     regresa None y deja el motivo en ultimo_error.
     """
     global contadorVentas, ultimo_error
-    temp2 = None
-    if codigo is not None and codigo != "":
-        if codigo in INVENTARIO:
-            if cantidad is not None and cantidad > 0:
-                if INVENTARIO[codigo]["stock"] >= cantidad:
-                    temp2 = INVENTARIO[codigo]
-                else:
-                    ultimo_error = "stock insuficiente"
-                    return None
-            else:
-                ultimo_error = "cantidad invalida"
-                return None
-        else:
-            ultimo_error = "producto no existe"
-            return None
-    else:
+    if codigo is None or codigo == "":
         ultimo_error = "codigo vacio"
+        return None
+    if codigo not in INVENTARIO:
+        ultimo_error = "producto no existe"
+        return None
+    # "not ... > 0" en vez de "<= 0" para que NaN siga siendo invalido
+    if cantidad is None or not cantidad > 0:
+        ultimo_error = "cantidad invalida"
+        return None
+    temp2 = INVENTARIO[codigo]
+    if not temp2["stock"] >= cantidad:
+        ultimo_error = "stock insuficiente"
         return None
     aux = _calcular_subtotal(temp2["precio"], cantidad)
     desc = _descuento_por_volumen(aux)
     # los clientes cuyo codigo empieza con VIP tienen un extra,
     # pero solo si su compra (ya con descuento) pasa de cierto monto
-    if cliente != "" and cliente is not None:
-        if len(cliente) >= len(PREFIJO_VIP):
-            if cliente[0:len(PREFIJO_VIP)] == PREFIJO_VIP:
-                if aux - desc > MONTO_MINIMO_VIP:
-                    desc = desc + aux * TASA_EXTRA_VIP
+    es_vip = cliente is not None and cliente.startswith(PREFIJO_VIP)
+    if es_vip and aux - desc > MONTO_MINIMO_VIP:
+        desc = desc + aux * TASA_EXTRA_VIP
     base = aux - desc
     impuesto = _calcular_iva(base)
     total = round(base + impuesto, 2)
