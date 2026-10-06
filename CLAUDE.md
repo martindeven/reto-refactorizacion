@@ -33,6 +33,7 @@ Si `.venv` no existe: `python3 -m venv .venv && .venv/bin/pip install -r require
 - **No renombrar** `agregarProducto` ni `buscarProducto`: los usan los tests (por eso están en `ignore-names` de ruff).
 - **El programa debe comportarse igual que antes**: mismos valores de regreso, mismos mensajes de error, mismo texto del ticket y de los reportes, mismos resultados de descuentos e IVA.
 - También son API usada por los tests: `gestor.INVENTARIO`, `gestor.VENTAS`, `reiniciar_sistema`, `eliminar_producto`, `actualizar_stock`, `registrar_venta`, `cotizar`, `almacen.guardar_datos`/`cargar_datos` y `reportes.productos_stock_bajo`/`reporte_inventario`/`total_vendido`/`mas_vendidos`, además de las llaves de los dicts de producto (`codigo`, `nombre`, `precio`, `stock`) y de venta (`folio`, `codigo`, `nombre`, `cantidad`, `subtotal`, `descuento`, `impuesto`, `total`, `cliente`, `fecha`, `ticket`).
+- **Archivos que no se leen**: `.claudeignore` lista lo que Claude Code no necesita leer (`.venv`, cachés, `.git`, basura de SO, `src/datos_ejemplo.json`). Como Claude Code no aplica ese archivo por sí solo, las mismas exclusiones están en `.claude/settings.json` como reglas `Read(...)` de `permissions.deny`. Si cambias una lista, cambia también la otra.
 
 ## Lo que es fácil romper sin darse cuenta
 
@@ -127,3 +128,4 @@ descuento = descuento + calcular_extra_vip(cliente, subtotal, descuento)
 | Versión | Fecha | Cambio |
 |---|---|---|
 | 1 | 2026-10-06 | Versión inicial: proyecto, comandos, reglas, puntos frágiles, convenciones y forma de trabajo. |
+| 2 | 2026-10-06 | Regla sobre `.claudeignore` y su equivalente en `.claude/settings.json` (`permissions.deny`). |
