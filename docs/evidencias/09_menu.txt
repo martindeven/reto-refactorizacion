@@ -1,0 +1,90 @@
+# Evidencia #9: dividir menu() en una función por opción + diccionario
+# Fecha: 2026-10-06 11:26:31
+# Base: 8d35d4f (refactorizacion) + cambios sin commit
+
+$ git diff --stat
+ src/main.py | 159 ++++++++++++++++++++++++++++++++++++++----------------------
+ 1 file changed, 102 insertions(+), 57 deletions(-)
+
+$ pytest -v
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/martin/proyectos/ia-curso/modulo1/reto/reto-refactorizacion/.venv/bin/python3
+rootdir: /home/martin/proyectos/ia-curso/modulo1/reto/reto-refactorizacion
+configfile: pyproject.toml
+testpaths: tests
+collecting ... collected 41 items
+
+tests/test_almacen.py::test_guardar_y_cargar_conserva_los_datos PASSED   [  2%]
+tests/test_almacen.py::test_el_folio_continua_despues_de_recargar PASSED [  4%]
+tests/test_almacen.py::test_cargar_archivo_inexistente_regresa_false PASSED [  7%]
+tests/test_casos_borde.py::test_ticket_sin_descuento PASSED              [  9%]
+tests/test_casos_borde.py::test_ticket_con_descuento PASSED              [ 12%]
+tests/test_casos_borde.py::test_sin_descuento_el_descuento_es_cero_entero PASSED [ 14%]
+tests/test_casos_borde.py::test_errores_de_agregar_producto PASSED       [ 17%]
+tests/test_casos_borde.py::test_errores_de_eliminar_y_actualizar_stock PASSED [ 19%]
+tests/test_casos_borde.py::test_errores_de_registrar_venta_en_orden PASSED [ 21%]
+tests/test_casos_borde.py::test_errores_de_cotizar PASSED                [ 24%]
+tests/test_casos_borde.py::test_errores_de_cargar_datos PASSED           [ 26%]
+tests/test_casos_borde.py::test_reiniciar_sistema_limpia_el_error PASSED [ 29%]
+tests/test_casos_borde.py::test_vip_justo_en_200_no_aplica PASSED        [ 31%]
+tests/test_casos_borde.py::test_vip_arriba_de_200_si_aplica PASSED       [ 34%]
+tests/test_casos_borde.py::test_vip_se_suma_al_descuento_por_volumen_y_es_sobre_el_subtotal PASSED [ 36%]
+tests/test_casos_borde.py::test_vip_en_minusculas_no_aplica PASSED       [ 39%]
+tests/test_casos_borde.py::test_cotizar_no_aplica_vip PASSED             [ 41%]
+tests/test_casos_borde.py::test_reporte_inventario_texto_completo PASSED [ 43%]
+tests/test_casos_borde.py::test_resumen_ventas_texto_completo PASSED     [ 46%]
+tests/test_casos_borde.py::test_reportes_sin_datos_muestran_cero_sin_decimales PASSED [ 48%]
+tests/test_casos_borde.py::test_reportes_tambien_imprimen_el_texto PASSED [ 51%]
+tests/test_casos_borde.py::test_mas_vendidos_empate_conserva_el_orden_de_primera_venta PASSED [ 53%]
+tests/test_casos_borde.py::test_mas_vendidos_sin_ventas_es_lista_vacia PASSED [ 56%]
+tests/test_casos_borde.py::test_stock_en_5_no_es_bajo_y_en_4_si PASSED   [ 58%]
+tests/test_gestor.py::test_agregar_producto_queda_en_inventario PASSED   [ 60%]
+tests/test_gestor.py::test_rechaza_altas_invalidas PASSED                [ 63%]
+tests/test_gestor.py::test_actualizar_stock_suma_y_resta PASSED          [ 65%]
+tests/test_gestor.py::test_eliminar_producto PASSED                      [ 68%]
+tests/test_gestor.py::test_buscar_producto_por_nombre PASSED             [ 70%]
+tests/test_gestor.py::test_venta_descuenta_stock_y_asigna_folio PASSED   [ 73%]
+tests/test_gestor.py::test_venta_sin_descuento_aplica_iva PASSED         [ 75%]
+tests/test_gestor.py::test_venta_con_descuento_por_volumen_medio PASSED  [ 78%]
+tests/test_gestor.py::test_venta_con_descuento_por_volumen_alto PASSED   [ 80%]
+tests/test_gestor.py::test_venta_cliente_vip_recibe_descuento_extra PASSED [ 82%]
+tests/test_gestor.py::test_venta_rechaza_stock_insuficiente PASSED       [ 85%]
+tests/test_gestor.py::test_venta_rechaza_producto_inexistente_y_cantidad_invalida PASSED [ 87%]
+tests/test_gestor.py::test_cotizar_coincide_con_el_total_de_la_venta PASSED [ 90%]
+tests/test_reportes.py::test_stock_bajo_detecta_los_correctos PASSED     [ 92%]
+tests/test_reportes.py::test_total_vendido_suma_las_ventas PASSED        [ 95%]
+tests/test_reportes.py::test_mas_vendidos_ordena_por_unidades PASSED     [ 97%]
+tests/test_reportes.py::test_reporte_inventario_marca_stock_bajo PASSED  [100%]
+
+============================== 41 passed in 0.03s ==============================
+[exit code: 0]
+
+$ ruff check src --statistics
+[exit code: 0]
+
+$ ruff check src   (--statistics no imprime nada cuando hay 0 errores)
+All checks passed!
+
+$ complejidad de las funciones de main.py (max-complexity=0 solo para medir; antes menu = 17)
+src/main.py:10:5: C901 `pedir_numero` is too complex (3 > 0)
+src/main.py:20:5: C901 `_mostrar_opciones` is too complex (1 > 0)
+src/main.py:33:5: C901 `_opcion_agregar_producto` is too complex (2 > 0)
+src/main.py:45:5: C901 `_opcion_registrar_venta` is too complex (2 > 0)
+src/main.py:57:5: C901 `_opcion_cotizar` is too complex (2 > 0)
+src/main.py:68:5: C901 `_opcion_reporte_inventario` is too complex (1 > 0)
+src/main.py:73:5: C901 `_opcion_resumen_ventas` is too complex (1 > 0)
+src/main.py:78:5: C901 `_opcion_mas_vendidos` is too complex (2 > 0)
+src/main.py:84:5: C901 `_opcion_stock_bajo` is too complex (3 > 0)
+src/main.py:95:5: C901 `_opcion_guardar_y_salir` is too complex (1 > 0)
+src/main.py:116:5: C901 `menu` is too complex (5 > 0)
+
+$ diff docs/evidencias/09_menu_antes.txt docs/evidencias/09_menu_despues.txt
+(sin diferencias, 105 líneas)
+
+$ prueba extra antes/después: errores (código duplicado, precio, producto inexistente, stock),
+# número inválido, ventas VIP, cotizar, opción inválida, guardar, recargar ('Datos cargados de'),
+# 'No hay productos con stock bajo' y el JSON guardado
+(sin diferencias, 338 líneas)
+
+$ ls src/datos_ejemplo.json
+ls: cannot access 'src/datos_ejemplo.json': No such file or directory
