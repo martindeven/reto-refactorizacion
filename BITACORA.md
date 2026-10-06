@@ -124,6 +124,33 @@ Después de cada cambio ejecuta `pytest` y `ruff check src` y anota el resultado
 
 > Agrega más filas si realizas más de 5 refactorizaciones.
 
+## Experimento: prompt vago vs detallado
+
+**Modo:** plan (solo lectura; no se editó código).
+
+**Prompt A (vago):**
+
+> mejora el código de gestor.py
+
+**Prompt B (detallado, refactorización 2):** ver la fila 2 de la tabla de arriba (números mágicos → constantes, con la condición de que los resultados salgan exactamente iguales, sin cambiar el orden de las operaciones ni los redondeos, y con el descuento inicial en `0`).
+
+**Qué respondió Claude Code al prompt A:** un plan con 7 cambios juntos en `gestor.py`: cláusulas de guarda en `registrar_venta`, función de descuento compartida con `cotizar`, función para el ticket con f-strings, renombrar variables (incluido `contadorVentas` → `contador_ventas`), *list comprehension* en `buscarProducto`, diccionarios literales y type hints; y como sugerencia, excepciones en vez de `ultimo_error` y una clase en vez del estado global.
+
+**Revisión de esa respuesta:**
+
+- **Muchos cambios a la vez:** ~120 líneas en un solo diff, equivalente a 4–5 refactorizaciones. Si un test falla, no se sabe qué lo rompió.
+- **Nombres que usan otros módulos:** respetaba `agregarProducto`/`buscarProducto` solo porque CLAUDE.md lo dice. Pero renombraba `contadorVentas` únicamente en `gestor.py`, y `almacen.py` lo usa: `guardar_datos` tronaría y el folio se reiniciaría al cargar. **Comprobado** en una copia aparte: renombrarlo solo en `gestor.py` hace fallar `test_guardar_y_cargar_conserva_los_datos` y `test_el_folio_continua_despues_de_recargar` con `AttributeError` (39/41).
+- **Textos de salida:** el prompt no los protege. Pasar el ticket a f-strings invita a `:.2f` (`$20.00` en vez de `$20.0`) o a un `descuento` `0.0`; solo lo atraparían las pruebas de caracterización.
+- **Reglas de CLAUDE.md:** rompía "un cambio a la vez" y "una refactorización = un commit".
+
+| | Prompt A: "mejora el código de gestor.py" | Prompt B: refactorización 2 |
+|---|---|---|
+| Qué tanto cambia | Mucho: casi todo `gestor.py` (~120 líneas, 7 tipos de cambio) y obliga a tocar `almacen.py` | Poco: solo números → constantes; 2 archivos, +34/−16, sin cambiar la lógica |
+| Qué tan riesgoso es | Alto: rompe 2 tests (`contadorVentas`) y puede cambiar textos, tipos y el orden de los mensajes de error | Bajo: 41/41 tests y salidas idénticas en 20 000 casos al azar |
+| Qué tan fácil es revisar | Difícil: un diff grande que mezcla estructura, nombres y formato | Fácil: cada línea cambiada es "número → nombre" |
+
+**Conclusión:** el prompt vago no está "mal", pero le deja a la IA decidir el alcance, y la IA tiende a arreglar todo a la vez. Eso produce cambios grandes, difíciles de revisar y con riesgos que el prompt no menciona (como un nombre que se usa en otro archivo). El prompt detallado acota **qué** cambiar, **qué no** debe cambiar (resultados, orden, redondeos, `0` entero) y **cómo** validarlo. Así el cambio es pequeño, verificable y cabe en un commit. CLAUDE.md y las pruebas de caracterización ayudan como red de seguridad, pero no sustituyen a un buen prompt: atrapan errores después; el prompt detallado los evita antes.
+
 ## Reflexión final (10-15 líneas)
 
 Responde: ¿Qué tan útil fue Claude Code para detectar y corregir los problemas?
