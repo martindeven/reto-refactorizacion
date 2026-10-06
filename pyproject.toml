@@ -1,0 +1,35 @@
+# Configuración de calidad del reto: Refactorización Asistida por IA
+#
+# Linter: ruff  →  ruff check src
+# El código final de src/ debe pasar SIN errores (requisito del reto).
+# No modifiques este archivo para "hacer pasar" el linter: se revisa en el PR.
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+src = ["src"]
+# Los tests no se modifican en este reto, así que no se lintean.
+extend-exclude = ["tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",   # estilo PEP 8 (pycodestyle)
+    "F",        # errores reales: imports y variables sin usar, nombres indefinidos
+    "I",        # orden de imports
+    "N",        # convenciones de nombres PEP 8 (snake_case)
+    "B",        # patrones propensos a bugs (flake8-bugbear)
+    "SIM",      # código que se puede simplificar
+    "UP",       # sintaxis moderna de Python 3.10+
+    "C90",      # complejidad ciclomática (funciones gigantes)
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pep8-naming]
+# API pública que usan los tests (tests/ no se puede modificar):
+# estos dos nombres se conservan aunque no sean snake_case.
+ignore-names = ["agregarProducto", "buscarProducto"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,16 @@
+# Entornos virtuales
+.venv/
+venv/
+
+# Cachés de Python y herramientas
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Basura de sistemas operativos
+*:Zone.Identifier
+.DS_Store
+
+# Datos generados al guardar desde el menú (cd src && python main.py)
+src/datos_ejemplo.json

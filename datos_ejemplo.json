@@ -1,0 +1,42 @@
+{
+  "inventario": {
+    "A001": {
+      "codigo": "A001",
+      "nombre": "Café de grano 500g",
+      "precio": 185.0,
+      "stock": 12
+    },
+    "A002": {
+      "codigo": "A002",
+      "nombre": "Azúcar 1kg",
+      "precio": 32.5,
+      "stock": 40
+    },
+    "A003": {
+      "codigo": "A003",
+      "nombre": "Leche entera 1L",
+      "precio": 26.0,
+      "stock": 3
+    },
+    "B001": {
+      "codigo": "B001",
+      "nombre": "Galletas de avena",
+      "precio": 45.0,
+      "stock": 18
+    },
+    "B002": {
+      "codigo": "B002",
+      "nombre": "Chocolate en polvo 400g",
+      "precio": 78.9,
+      "stock": 2
+    },
+    "C001": {
+      "codigo": "C001",
+      "nombre": "Jabón de tocador",
+      "precio": 21.0,
+      "stock": 25
+    }
+  },
+  "ventas": [],
+  "contador": 0
+}
