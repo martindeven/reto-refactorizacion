@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Punto de entrada del gestor de tienda (menu interactivo en consola)."""
 
 import gestor

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Persistencia del gestor: carga y guardado de datos en JSON."""
 
 import json
